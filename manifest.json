@@ -1,0 +1,25 @@
+{
+  "platform-version": "2.2",
+  "product": {
+    "freshdesk": {
+      "events": {
+        "onTicketCreate": {
+          "handler": "onTicketCreateHandler"
+        },
+        "onTicketUpdate": {
+          "handler": "onTicketUpdateHandler"
+        },
+        "onConversationCreate": {
+          "handler": "onConversationCreateHandler"
+        }
+      }
+    }
+  },
+  "whitelisted-domains": [
+    "https://api.bitbucket.org"
+  ],
+  "engines": {
+    "node": "12.22.8",
+    "fdk": "7.3.0"
+  }
+}

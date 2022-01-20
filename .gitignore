@@ -1,0 +1,6 @@
+.fdk/*
+coverage/
+log/
+.report.json
+dist/
+server/test_data/

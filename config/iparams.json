@@ -1,0 +1,8 @@
+{
+  "bitBucket_repo": {
+    "display_name": "BitBucket repo : ",
+    "description": "Enter the BitBucket Repository name Ex: user/reponame",
+    "type": "text",
+    "required": true
+  }
+}
