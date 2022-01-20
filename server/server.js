@@ -10,8 +10,9 @@ function find(ticketID){
 }
 
 exports = {
-  onTicketCreateHandler: function(args) {
-    $request.post(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues`,{
+  onTicketCreateHandler: async function(args) {
+    try {
+      const data = await $request.post(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues`,{
         headers:{
           Authorization: 'Bearer <%= access_token %>',
           content_type:' application/json'
@@ -23,24 +24,27 @@ exports = {
             raw: args.data.ticket.description_text
            }
         }
-      }).then( data => {
-        console.log('Successfully created the BitBucket issue for the freshdesk ticket');
-        saveMapping({
-          ticketID: args.data.ticket.id,
-          issueID: data.response.id,
-          issueUUID: data.response.reporter.uuid
-        }).then( function success(){
-          console.info('Successfully set the mapping in the db');
-        },error =>{
-          console.error('Error: Failed to set the mapping in the db');
-          console.error(JSON.stringify(error));
-        });
-      },error => {
-        console.error('Error: Failed to create the BitBucket issue for the freshdesk ticket');
-        console.error(JSON.stringify(error));
+      })
+
+       if(data.status !== 201 ) throw new Error("Error: Failed to create the BitBucket issue for the freshdesk ticket");
+       console.log('Successfully created the BitBucket issue for the freshdesk ticket');
+       const storeDataStatus =  await saveMapping({
+        ticketID: args.data.ticket.id,
+        issueID: data.response.id,
+        issueUUID: data.response.reporter.uuid
       });
+
+      if(storeDataStatus[0].Created === false && storeDataStatus[1].Created === false) throw new Error("Error: Failed to set the mapping in the db");
+      console.info('Successfully set the mapping in the db');
+
+
+    } catch(error){
+      console.error(`${error.message}`);
+    }
+
+
   },
-  onTicketUpdateHandler: function(args){
+  onTicketUpdateHandler: async function(args){
    var priority_no = args.data.ticket.priority;
    let issue_priority = "trivial";
   //  if(priority_no === 1) issue_priority = "minor";
@@ -56,35 +60,38 @@ exports = {
     }
     issue_priority = priorityMap[`${priority_no}`];
 
-   find(args.data.ticket.id).then( data => {
-      const issueID = data.issue_data.issueID;
-      $request.put(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}`,{
-        headers: {
-          Authorization : "Bearer <%= access_token %>"
-        },
-        isOAuth: true,
-        json: {
-          "priority" : issue_priority
-        }
+    try {
+        const data = await find(args.data.ticket.id)
+        if(!data) throw new Error(`Error: couldn't able to find issue id, ${data}`);
+        const issueID = data.issue_data.issueID;
+        const res = await $request.put(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}`,{
+          headers: {
+            Authorization : "Bearer <%= access_token %>"
+          },
+          isOAuth: true,
+          json: {
+            "priority" : issue_priority
+          }
 
-      }).then(() => {
+        })
+        if(res.status !== 200) throw new Error(`Error: Failed to update issue priority,${res.status}`);
+
         console.log("Successfully changed the issue priority");
-      }, (error) => {
-        console.error("Failed to update issue priority",JSON.stringify(error));
-      })
-      },error => {
-        console.error("Error: couldn't able to find issue id",JSON.stringify(error));
-        console.error(error);
 
-      })
+      } catch(error){
+      console.error(`${error.message}`);
+    }
  },
 
-  onConversationCreateHandler: function(args){
+  onConversationCreateHandler: async function(args){
     const payload = typeof args.data === 'string' ? JSON.parse(args.data) : args.data;
     const ticketID = payload.conversation.ticket_id;
-    find(ticketID).then( data => {
+
+    try{
+      const data = await find(ticketID);
+      if(!data) throw new Error(`Error: couldn't able to find issue id, ${data}`);
       const { issueID }= data.issue_data;
-      $request.post(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}/comments`,{
+      const res = await $request.post(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}/comments`,{
         headers:{
           Authorization : " Bearer <%= access_token %>"
         },
@@ -94,16 +101,14 @@ exports = {
             "raw":`From ${payload.actor.name} - ${payload.conversation.body_text}`
           }
         }
-      }).then( () => {
-        console.log("Successfully added a comment in the issue");
-      }, (error) => {
-        console.error("Error: failed to add a comment in the issue",JSON.stringify(error));
       })
+      if(res.status !== 201) throw new Error(`Error: failed to add a comment in the issue,${res.status}`);
+      console.log("Successfully added a comment in the issue");
 
-    },error => {
-      console.error("Error : couldn't able to find issue id",JSON.stringify(error));
-      console.error(error);
-    })
+
+    } catch (error) {
+      console.error(`${error.message}`);
+    }
   }
 
 
