@@ -62,7 +62,7 @@ exports = {
     try {
         const data = await find(args.data.ticket.id)
         if(!data) throw new Error(`Error: couldn't able to find issue id, ${data}`);
-        const issueID = data.issue_data.issueID;
+        const { issueID } = data.issue_data;
         const res = await $request.put(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}`,{
           headers: {
             Authorization : "Bearer <%= access_token %>"
