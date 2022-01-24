@@ -46,7 +46,6 @@ exports = {
   },
   onTicketUpdateHandler: async function(args){
    const priority_no = args.data.ticket.priority;
-   let issue_priority = "trivial";
   //  if(priority_no === 1) issue_priority = "minor";
   //  else if(priority_no === 2) issue_priority = "major";
   //  else if(priority_no === 3) issue_priority = "critical";
