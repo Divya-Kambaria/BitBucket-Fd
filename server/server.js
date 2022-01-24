@@ -34,7 +34,7 @@ exports = {
         issueUUID: data.response.reporter.uuid
       });
 
-      if(storeDataStatus[0].Created === false && storeDataStatus[1].Created === false) throw new Error("Error: Failed to set the mapping in the db");
+      if(!storeDataStatus[0].Created && !storeDataStatus[1].Created) throw new Error("Error: Failed to set the mapping in the db");
       console.info('Successfully set the mapping in the db');
 
 
