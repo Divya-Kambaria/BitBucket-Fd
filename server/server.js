@@ -26,7 +26,9 @@ exports = {
         }
       })
 
-       if(data.status !== 201 ) throw new Error("Error: Failed to create the BitBucket issue for the freshdesk ticket");
+       if(data.status !== 201 ){
+          throw new Error(`Error: Failed to create the BitBucket issue for the freshdesk ticket , ${data.status}`);
+       }
        console.log('Successfully created the BitBucket issue for the freshdesk ticket');
        const storeDataStatus =  await saveMapping({
         ticketID: args.data.ticket.id,
@@ -73,7 +75,9 @@ exports = {
           }
 
         })
-        if(res.status !== 200) throw new Error(`Error: Failed to update issue priority,${res.status}`);
+        if(res.status !== 200) {
+          throw new Error(`Error: Failed to update issue priority,${res.status}`);
+        }
 
         console.log('Successfully changed the issue priority');
 
@@ -82,31 +86,33 @@ exports = {
     }
  },
 
-  onConversationCreateHandler: async function(args){
-    const payload = typeof args.data === 'string' ? JSON.parse(args.data) : args.data;
-    const ticketID = payload.conversation.ticket_id;
+  onConversationCreateHandler: async function(payload){
+
+    const ticketID  = payload.data.conversation.ticket_id;
 
     try{
       const data = await find(ticketID);
       if(!data) throw new Error(`Error: couldn't able to find issue id, ${data}`);
       const { issueID }= data.issue_data;
-      const res = await $request.post(`https://api.bitbucket.org/2.0/repositories/${args.iparams.bitBucket_repo}/issues/${issueID}/comments`,{
+      const res = await $request.post(`https://api.bitbucket.org/2.0/repositories/${payload.iparams.bitBucket_repo}/issues/${issueID}/comments`,{
         headers:{
           Authorization : " Bearer <%= access_token %>"
         },
         isOAuth: true,
         json:{
           "content":{
-            "raw":`From ${payload.actor.name} - ${payload.conversation.body_text}`
+            "raw":`From ${payload.data.actor.name} - ${payload.data.conversation.body_text}`
           }
         }
       })
-      if(res.status !== 201) throw new Error(`Error: failed to add a comment in the issue,${res.status}`);
+      if(res.status !== 201) {
+        throw new Error(`Error: failed to add a comment in the issue,${res.status}`);
+      }
       console.log("Successfully added a comment in the issue");
 
 
     } catch (error) {
-      console.error(`${error.message}`);
+      console.error(error.message);
     }
   }
 
