@@ -75,7 +75,7 @@ exports = {
         })
         if(res.status !== 200) throw new Error(`Error: Failed to update issue priority,${res.status}`);
 
-        console.log("Successfully changed the issue priority");
+        console.log('Successfully changed the issue priority');
 
       } catch(error){
       console.error(`${error.message}`);
