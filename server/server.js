@@ -78,7 +78,7 @@ exports = {
         console.log('Successfully changed the issue priority');
 
       } catch(error){
-      console.error(`${error.message}`);
+      console.error(error.message);
     }
  },
 
