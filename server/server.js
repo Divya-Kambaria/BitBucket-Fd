@@ -58,7 +58,7 @@ exports = {
         3 : 'critical',
         4 : 'blocker'
     }
-    issue_priority = priorityMap[`${priority_no}`];
+   const issue_priority = priorityMap[priority_no] || 'trivial';
 
     try {
         const data = await find(args.data.ticket.id)
